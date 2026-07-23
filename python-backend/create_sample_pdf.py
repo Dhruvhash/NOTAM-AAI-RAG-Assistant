@@ -1,0 +1,28 @@
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+c = canvas.Canvas("sample_notam.pdf", pagesize=letter)
+c.setFont("Helvetica-Bold", 14)
+c.drawString(50, 750, "AAI NOTAM SUMMARY - MUMBAI FIR (VABB)")
+
+c.setFont("Helvetica", 11)
+text = c.beginText(50, 710)
+text.textLines("""
+A1226/26 NOTAMN
+Q) VOMF/QFAXX/IV/NBO/A/000/999/1300N08011E005
+A) VOBL BENGALURU
+B) 2607210200 C) 2607280600
+E) RUNWAY 09/27 CLOSED FOR RESURFACING DAILY FROM 0200Z TO 0600Z.
+ALL AIRCRAFT TO PLAN ALTERNATE AND OBEY ATC INSTRUCTIONS.
+
+A0894/26 NOTAMR A0800/26
+Q) VABF/QOBCE/IV/M/A/000/999/1905N07252E005
+A) VABB MUMBAI
+B) 2607200000 C) 2608302359
+E) CRANE ERECTED AT POS 190512N 0725215E HEIGHT 45M AGL / 60M AMSL.
+OBSTACLE LIGHTED AT NIGHT. DANGER TO LOW FLYING AIRCRAFT ON APPROACH.
+""")
+c.drawText(text)
+c.save()
+
+print("Generated valid text PDF sample_notam.pdf")
