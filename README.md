@@ -226,6 +226,8 @@ Ensure you have the following installed:
 #### Python Backend (`python-backend/.env`)
 ```env
 GROQ_API_KEY=your_groq_api_key_here
+FAA_NMS_CLIENT_ID=your_faa_client_id_if_available
+FAA_NMS_CLIENT_SECRET=your_faa_client_secret_if_available
 PORT=8000
 ```
 
