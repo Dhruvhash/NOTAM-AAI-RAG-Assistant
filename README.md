@@ -1,6 +1,6 @@
 <div align="center">
 
-# ✈️ AAI NOTAM Assistant
+# ✈️ AeroMind AI  (AAI NOTAM Assistant)
 
 ### **Intelligent Aviation Information & NOTAM RAG Processing System**
 
