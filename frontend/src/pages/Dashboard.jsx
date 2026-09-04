@@ -94,7 +94,7 @@ export default function Dashboard() {
               <span>AAI Flight Ops Clearance Status • Active</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Welcome back, {user?.name || 'Officer'}!
+              Welcome Captain!
             </h1>
             <p className="text-slate-300 text-sm max-w-xl">
               Real-time NOTAM ingestion and AI retrieval engine active. Query flight notices, runway status, and airspace advisories instantly.

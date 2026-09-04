@@ -4,10 +4,10 @@ import { authApi } from '../services/api';
 const AuthContext = createContext();
 
 const DEFAULT_USER = {
-  _id: 'demo_user_dhruv',
-  name: 'Dhruv',
-  email: 'dhruv@aai.aero',
-  role: 'Flight Operations Officer',
+  _id: 'demo_user_captain',
+  name: 'Captain',
+  email: 'captain@aai.aero',
+  role: 'Flight Operations Captain',
   createdAt: '2026-07-01',
 };
 

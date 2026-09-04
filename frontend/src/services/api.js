@@ -210,10 +210,10 @@ const safeCall = async (apiFunc, fallbackData) => {
 
 export const authApi = {
   signup: (userData) => safeCall(() => api.post('/auth/signup', userData), { user: { name: userData.name, email: userData.email } }),
-  login: (credentials) => safeCall(() => api.post('/auth/login', credentials), { user: { name: 'Dhruv', email: 'dhruv@aai.aero' } }),
+  login: (credentials) => safeCall(() => api.post('/auth/login', credentials), { user: { name: 'Captain', email: 'captain@aai.aero' } }),
   logout: () => safeCall(() => api.post('/auth/logout'), { message: 'Logged out' }),
-  getMe: () => safeCall(() => api.get('/auth/me'), { user: { name: 'Dhruv', email: 'dhruv@aai.aero', role: 'Flight Operations Officer' } }),
-  updateProfile: (data) => safeCall(() => api.put('/auth/profile', data), { user: { name: data.name, email: 'dhruv@aai.aero', role: 'Flight Operations Officer' } }),
+  getMe: () => safeCall(() => api.get('/auth/me'), { user: { name: 'Captain', email: 'captain@aai.aero', role: 'Flight Operations Captain' } }),
+  updateProfile: (data) => safeCall(() => api.put('/auth/profile', data), { user: { name: data.name, email: 'captain@aai.aero', role: 'Flight Operations Captain' } }),
   updatePassword: (data) => safeCall(() => api.put('/auth/password', data), { message: 'Password updated' }),
 };
 
