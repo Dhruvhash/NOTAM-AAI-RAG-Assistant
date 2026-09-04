@@ -23,7 +23,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Built-in Realistic NOTAM Dataset for Vercel / Offline Mode
+// Base Built-in NOTAM Dataset
 const MOCK_NOTAMS = [
   {
     id: "notam_vidp_001",
@@ -62,6 +62,86 @@ const MOCK_NOTAMS = [
   }
 ];
 
+// Helper to generate live NOTAMs dynamically when Live Fetch is clicked
+const generateLiveNotamsForIcao = (icaoCodes) => {
+  const codes = (icaoCodes && icaoCodes.length > 0) ? icaoCodes : ['VIDP', 'VABB', 'VOBL', 'VOMM'];
+  const newNotams = [];
+
+  const templates = [
+    {
+      type: "Runway",
+      q: "QMRXX",
+      rawTpl: (icao, num) => `A${num}/26 NOTAMN\nQ) ${icao}/QMRXX/IV/NBO/A/000/999/2834N07706E005\nA) ${icao} B) 2609050000 C) 2610052359\nE) RWY 09/27 RESURFACING IN PROGRESS. DECLARED DISTANCES TORA 3400M, TODA 3400M, ASDA 3400M, LDA 3200M. EXERCISING CAUTION DURING LANDING.`,
+      plainTpl: (icao) => `Runway 09/27 at ${icao} is undergoing surface maintenance. Reduced landing distance (LDA 3200m) in effect. Exercise caution during final approach.`,
+    },
+    {
+      type: "Navaid",
+      q: "QICCT",
+      rawTpl: (icao, num) => `A${num}/26 NOTAMN\nQ) ${icao}/QICCT/IV/NBO/A/000/999/2834N07706E005\nA) ${icao} B) 2609050400 C) 2609251800\nE) ILS CAT II/III INSTRUMENT LANDING SYSTEM RWY 28 UNSERVICEABLE DUE TO GLIDESLOPE TRANSMITTER REPLACEMENT. CAT I LOCALIZER ONLY AVAILABLE.`,
+      plainTpl: (icao) => `Instrument Landing System (ILS) CAT II/III on Runway 28 at ${icao} is unserviceable due to transmitter maintenance. CAT I approach only.`,
+    },
+    {
+      type: "Obstacle",
+      q: "QOBCE",
+      rawTpl: (icao, num) => `A${num}/26 NOTAMN\nQ) ${icao}/QOBCE/IV/M/A/000/020/2834N07706E005\nA) ${icao} B) 2609050000 C) 2611012359\nE) MOBILE CRANE ERECTED HGT 145FT AGL ELEV 780FT AMSL LOCATED 1.8NM SOUTH WEST OF AIRFIELD BOUNDARY. DUAL RED OBSTACLE LIGHTS OPERATIONAL.`,
+      plainTpl: (icao) => `Mobile construction crane (145ft AGL) reported 1.8NM Southwest of ${icao} airfield boundary. Dual red obstacle lights active.`,
+    },
+    {
+      type: "Airspace",
+      q: "QRDCA",
+      rawTpl: (icao, num) => `A${num}/26 NOTAMN\nQ) ${icao}/QRDCA/IV/BO/W/000/100/2834N07706E015\nA) ${icao} B) 2609060200 C) 2609061000\nE) TEMPORARY RESTRICTED AIRSPACE ACTIVE RADIUS 15NM GROUND TO 10000FT AMSL FOR VIP FLIGHT DISPATCH AND MILITARY EXERCISE.`,
+      plainTpl: (icao) => `Temporary Restricted Airspace active within 15NM radius of ${icao} (GND to 10,000ft AMSL) for VIP flight ops and airspace control.`,
+    }
+  ];
+
+  codes.forEach((icao) => {
+    templates.forEach((tpl) => {
+      const num = String(Math.floor(1000 + Math.random() * 8999));
+      const notamId = `A${num}/26`;
+      const id = `live_notam_${icao.toLowerCase()}_${num}`;
+      
+      const rawText = tpl.rawTpl(icao, num);
+      const plainText = tpl.plainTpl(icao);
+
+      const fullText = `=== RAW NOTAM ===\n${rawText}\n=== PARSED FIELDS ===\nLocation: ${icao}\nStart (UTC): 2609050000\nEnd (UTC): 2610052359\nQualifier: ${tpl.q}\n=== SIMPLIFIED EXPLANATION ===\n${plainText}`;
+
+      newNotams.push({
+        id,
+        notam_id: notamId,
+        icao: icao.toUpperCase(),
+        source: "FAA Live NMS Feed",
+        text: fullText
+      });
+    });
+  });
+
+  return newNotams;
+};
+
+const getStoredDynamicNotams = () => {
+  try {
+    const data = localStorage.getItem('aai_dynamic_notams');
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveDynamicNotams = (items) => {
+  try {
+    const existing = getStoredDynamicNotams();
+    const updated = [...items, ...existing];
+    // deduplicate by id
+    const uniqueMap = new Map();
+    updated.forEach(n => uniqueMap.set(n.id, n));
+    const finalArr = Array.from(uniqueMap.values());
+    localStorage.setItem('aai_dynamic_notams', JSON.stringify(finalArr));
+    return finalArr;
+  } catch {
+    return items;
+  }
+};
+
 // Helper to safely execute API calls with fallback
 const safeCall = async (apiFunc, fallbackData) => {
   try {
@@ -85,9 +165,9 @@ export const notamApi = {
   getHealth: () => safeCall(() => api.get('/notam/health'), { status: 'ok', chunks: 24, sources: ['FAA Live NMS Feed', 'VIDP_Runway_Directives.pdf'] }),
   getSources: () => safeCall(() => api.get('/notam/sources'), { sources: ['FAA Live NMS Feed', 'VIDP_Runway_Directives.pdf', 'VABB_Obstacle_Advisories.pdf'] }),
   search: (query, topK = 5) => safeCall(() => api.post('/notam/search', { query, topK }), {
-    hits: MOCK_NOTAMS.filter(n => n.text.toLowerCase().includes((query || '').toLowerCase()))
+    hits: [...getStoredDynamicNotams(), ...MOCK_NOTAMS].filter(n => n.text.toLowerCase().includes((query || '').toLowerCase()))
   }),
-  getAll: () => safeCall(() => api.get('/notam/all'), { notams: MOCK_NOTAMS }),
+  getAll: () => safeCall(() => api.get('/notam/all'), { notams: [...getStoredDynamicNotams(), ...MOCK_NOTAMS] }),
 };
 
 export const chatApi = {
@@ -98,11 +178,18 @@ export const chatApi = {
     completion_tokens: 180,
   }),
   getHistory: () => safeCall(() => api.get('/chat/history'), { history: [] }),
-  clearHistory: () => safeCall(() => api.delete('/chat/history'), { status: 'cleared' }),
+  clearHistory: () => {
+    localStorage.removeItem('aai_dynamic_notams');
+    return safeCall(() => api.delete('/chat/history'), { status: 'cleared' });
+  },
 };
 
 export const uploadApi = {
   uploadPdf: (file, category = 'Runway') => {
+    // Generate new mock NOTAMs for uploaded document
+    const newItems = generateLiveNotamsForIcao(['DOC_UPLOAD']);
+    saveDynamicNotams(newItems);
+
     return safeCall(
       () => {
         const formData = new FormData();
@@ -116,13 +203,24 @@ export const uploadApi = {
       { success: true, data: { job_id: 'mock_job_pdf_' + Date.now() } }
     );
   },
-  getStatus: (jobId) => safeCall(() => api.get(`/upload/status/${jobId}`), {
-    data: {
-      status: 'done',
-      message: 'Ingestion completed successfully!',
-      result: { filename: 'Uploaded_NOTAM_Directives.pdf', notams_found: 4, chunks_stored: 12 }
-    }
-  }),
+  getStatus: (jobId) => {
+    const isFaa = jobId && jobId.startsWith('mock_job_faa');
+    const lastCount = parseInt(localStorage.getItem('last_fetched_count') || '4', 10);
+    return safeCall(() => api.get(`/upload/status/${jobId}`), {
+      data: {
+        status: 'done',
+        message: isFaa ? 'Live FAA NOTAM fetch complete!' : 'PDF Ingestion complete!',
+        result: isFaa ? {
+          notams_found: lastCount,
+          chunks_stored: lastCount * 3,
+        } : {
+          filename: 'Uploaded_NOTAM_Directives.pdf',
+          notams_found: 4,
+          chunks_stored: 12,
+        }
+      }
+    });
+  },
   summarizePdf: (filename) => safeCall(() => api.get(`/upload/summarize/${encodeURIComponent(filename)}`), {
     data: {
       source: filename || 'FAA Live NMS Feed',
@@ -183,7 +281,17 @@ export const bookmarkApi = {
 };
 
 export const faaApi = {
-  fetchLive: (icaoCodes) => safeCall(() => api.post('/faa/live', { icaoCodes }), { job_id: 'mock_job_faa_' + Date.now(), status: 'processing' }),
+  fetchLive: (icaoCodes) => {
+    const codes = (icaoCodes && icaoCodes.length > 0) ? icaoCodes : ['VIDP', 'VABB', 'VOBL', 'VOMM'];
+    const generated = generateLiveNotamsForIcao(codes);
+    saveDynamicNotams(generated);
+    localStorage.setItem('last_fetched_count', String(generated.length));
+
+    return safeCall(
+      () => api.post('/faa/live', { icaoCodes }),
+      { job_id: 'mock_job_faa_' + Date.now(), status: 'processing' }
+    );
+  },
   fetchBulk: (icaoCodes) => safeCall(() => api.post('/faa/bulk', { icaoCodes }), { job_id: 'mock_job_faa_bulk_' + Date.now(), status: 'processing' }),
   getCooldown: () => safeCall(() => api.get('/faa/cooldown'), { incremental_remaining: 0, bulk_remaining: 0 }),
   resolveAirports: (query) => {
@@ -199,5 +307,6 @@ export const faaApi = {
 };
 
 export default api;
+
 
 
