@@ -23,44 +23,100 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Base Built-in NOTAM Dataset
-const MOCK_NOTAMS = [
-  {
-    id: "notam_vidp_001",
-    notam_id: "A0412/26",
-    icao: "VIDP",
-    source: "FAA Live NMS Feed",
-    text: "=== RAW NOTAM ===\nA0412/26 NOTAMN\nQ) VIDP/QMRXX/IV/NBO/A/000/999/2834N07706E005\nA) VIDP B) 2609010000 C) 2609302359\nE) RWY 11/29 CLOSED FOR SCHEDULED MAINTENANCE 0200-0800 DAILY UTC. RWY 09/27 OPERATIONAL FOR CAT III B APPROACHES.\n=== PARSED FIELDS ===\nLocation: VIDP\nStart (UTC): 2609010000\nEnd (UTC): 2609302359\nQualifier: QMRXX\n=== SIMPLIFIED EXPLANATION ===\nRunway 11/29 at Indira Gandhi International Airport (Delhi) is closed daily from 02:00 to 08:00 UTC for scheduled pavement maintenance. Use Runway 09/27 for CAT III B approaches."
-  },
-  {
-    id: "notam_vabb_002",
-    notam_id: "A0589/26",
-    icao: "VABB",
-    source: "FAA Live NMS Feed",
-    text: "=== RAW NOTAM ===\nA0589/26 NOTAMN\nQ) VABB/QNVAS/IV/BO/AE/000/999/1905N07252E005\nA) VABB B) 2609020600 C) PERM\nE) BBB VOR/DME FREQ 116.6MHZ UNSERVICEABLE DUE TO ANTENNA REPLACEMENT. ALTERNATE NAVAIDS RNAV 1 RNP 0.3 IN EFFECT FOR ARRIVALS.\n=== PARSED FIELDS ===\nLocation: VABB\nStart (UTC): 2609020600\nEnd (UTC): PERM\nQualifier: QNVAS\n=== SIMPLIFIED EXPLANATION ===\nChhatrapati Shivaji Maharaj International Airport (Mumbai) VOR/DME nav-aid (116.6 MHz) is unserviceable permanently. Use RNAV 1 / RNP 0.3 arrival procedures."
-  },
-  {
-    id: "notam_vobl_003",
-    notam_id: "A0214/26",
-    icao: "VOBL",
-    source: "FAA Live NMS Feed",
-    text: "=== RAW NOTAM ===\nA0214/26 NOTAMN\nQ) VOBL/QOBCE/IV/M/A/000/015/1312N07742E005\nA) VOBL B) 2609030000 C) 2610151800\nE) TEMPORARY CRANE ERECTED HGT 120FT AGL ELEV 3050FT AMSL LOCATED 2.5NM NORTH OF RWY 09L THRESHOLD. LIGHTED AT NIGHT.\n=== PARSED FIELDS ===\nLocation: VOBL\nStart (UTC): 2609030000\nEnd (UTC): 2610151800\nQualifier: QOBCE\n=== SIMPLIFIED EXPLANATION ===\nKempegowda International Airport (Bengaluru) reports a temporary construction crane (120ft AGL) 2.5 nautical miles North of Runway 09L threshold. Obstacle lighting active."
-  },
-  {
-    id: "notam_vomm_004",
-    notam_id: "A0178/26",
-    icao: "VOMM",
-    source: "FAA Live NMS Feed",
-    text: "=== RAW NOTAM ===\nA0178/26 NOTAMN\nQ) VOMM/QPICH/IV/BO/A/000/999/1259N08010E005\nA) VOMM B) 2609040000 C) 2609202359\nE) PAPI RWY 07 RIGHT SIDE UNSERVICEABLE. LEFT SIDE PAPI OPERATIONAL 3 DEGREE GLIDESLOPE.\n=== PARSED FIELDS ===\nLocation: VOMM\nStart (UTC): 2609040000\nEnd (UTC): 2609202359\nQualifier: QPICH\n=== SIMPLIFIED EXPLANATION ===\nChennai International Airport Right-Side PAPI lights for Runway 07 are unserviceable. Left-side PAPI remains fully operational at standard 3-degree glide angle."
-  },
-  {
-    id: "notam_egll_005",
-    notam_id: "A1102/26",
-    icao: "EGLL",
-    source: "FAA Live NMS Feed",
-    text: "=== RAW NOTAM ===\nA1102/26 NOTAMN\nQ) EGLL/QFAXX/IV/NBO/A/000/999/5128N00027W005\nA) EGLL B) 2609011200 C) 2609101200\nE) HIGH INTENSITY BIRD ACTIVITY REPORTED IN VICINITY OF RUNWAY 27L/09R THRESHOLD DURING MORNING GRADIENT FLIGHT HOURS.\n=== PARSED FIELDS ===\nLocation: EGLL\nStart (UTC): 2609011200\nEnd (UTC): 2609101200\nQualifier: QFAXX\n=== SIMPLIFIED EXPLANATION ===\nLondon Heathrow Airport reports increased bird hazard concentration near Runway 27L/09R threshold during morning departure hours. Flight crews advise extra vigilance."
-  }
-];
+// Built-in 89 NOTAM Generator for Full Dataset Feed
+const generate89Notams = () => {
+  const airportConfigs = [
+    { icao: "VIDP", name: "Delhi Indira Gandhi International Airport", count: 15 },
+    { icao: "VABB", name: "Mumbai Chhatrapati Shivaji Maharaj International Airport", count: 15 },
+    { icao: "VOBL", name: "Bengaluru Kempegowda International Airport", count: 12 },
+    { icao: "VOMM", name: "Chennai International Airport", count: 12 },
+    { icao: "VECC", name: "Kolkata Netaji Subhash Chandra Bose Airport", count: 10 },
+    { icao: "VOHS", name: "Hyderabad Rajiv Gandhi International Airport", count: 8 },
+    { icao: "VAAH", name: "Ahmedabad Sardar Vallabhbhai Patel Airport", count: 5 },
+    { icao: "VOCI", name: "Cochin International Airport", count: 5 },
+    { icao: "VAGO", name: "Goa Dabolim Airport", count: 4 },
+    { icao: "EGLL", name: "London Heathrow Airport", count: 3 }
+  ];
+
+  const categories = [
+    {
+      cat: "Runway",
+      code: "QMRXX",
+      rawText: (num, icao) => `RWY 11/29 CLOSED FOR SCHEDULED MAINTENANCE 0200-0800 DAILY UTC. RWY 09/27 OPERATIONAL FOR CAT III B APPROACHES.`,
+      plainText: (icao, name) => `Runway 11/29 at ${name} (${icao}) is closed daily from 02:00 to 08:00 UTC for pavement maintenance. Runway 09/27 available for CAT III B.`
+    },
+    {
+      cat: "Navaid",
+      code: "QNVAS",
+      rawText: (num, icao) => `BBB VOR/DME FREQ 116.6MHZ UNSERVICEABLE DUE TO ANTENNA MAINTENANCE. ALTERNATE NAVAIDS RNAV 1 RNP 0.3 IN EFFECT.`,
+      plainText: (icao, name) => `VOR/DME navigation aid (116.6 MHz) at ${name} (${icao}) is unserviceable. Use RNAV 1 / RNP 0.3 arrival procedures.`
+    },
+    {
+      cat: "Obstacle",
+      code: "QOBCE",
+      rawText: (num, icao) => `TEMPORARY CONSTRUCTION CRANE HGT 140FT AGL ELEV 850FT AMSL LOCATED 2.1NM NORTH OF RWY THRESHOLD. LIGHTED AT NIGHT.`,
+      plainText: (icao, name) => `Construction crane obstacle (140ft AGL) reported 2.1NM North of Runway threshold at ${name} (${icao}). Obstacle lighting active.`
+    },
+    {
+      cat: "Airspace",
+      code: "QRDCA",
+      rawText: (num, icao) => `TEMPORARY RESTRICTED AIRSPACE ACTIVE RADIUS 12NM GND TO 10000FT AMSL FOR VIP FLIGHT DIRECTIVES & MILITARY EXERCISE.`,
+      plainText: (icao, name) => `Temporary Restricted Airspace active within 12NM radius of ${name} (${icao}) from Ground to 10,000ft AMSL.`
+    },
+    {
+      cat: "Runway",
+      code: "QMRLC",
+      rawText: (num, icao) => `TAXIWAY ECHO CLOSED BETWEEN TAXIWAY ALPHA AND BRAVO FOR SURFACE RESURFACING. FOLLOW FOLLOW-ME CAR DISPATCH.`,
+      plainText: (icao, name) => `Taxiway Echo closed at ${name} (${icao}) between TWY A and B for resurfacing. Follow-me vehicle dispatch active.`
+    },
+    {
+      cat: "Navaid",
+      code: "QICCT",
+      rawText: (num, icao) => `ILS CAT II/III GLIDESLOPE TRANSMITTER UNSERVICEABLE. CAT I APPROACH ONLY WITH VISIBILITY MINIMA 800M.`,
+      plainText: (icao, name) => `ILS Glideslope at ${name} (${icao}) unserviceable. CAT I approach authorized with 800m minimum visibility.`
+    },
+    {
+      cat: "Obstacle",
+      code: "QOLAS",
+      rawText: (num, icao) => `METEOROLOGICAL TOWER TALL 115FT AGL ERECTED 1.5NM EAST OF AIRFIELD BOUNDARY. DUAL RED OBSTACLE LIGHTS OPERATIONAL.`,
+      plainText: (icao, name) => `Met tower (115ft AGL) erected 1.5NM East of ${name} (${icao}) airfield boundary with dual red obstacle lights.`
+    },
+    {
+      cat: "Airspace",
+      code: "QFAXX",
+      rawText: (num, icao) => `HIGH INTENSITY BIRD HAZARD REPORTED NEAR THRESHOLD DURING MORNING GRADIENT HOURS. FLIGHT CREWS ADVISE CAUTION.`,
+      plainText: (icao, name) => `High intensity bird hazard advisory in effect near threshold at ${name} (${icao}) during morning flight hours.`
+    }
+  ];
+
+  const items = [];
+  let countIndex = 101;
+
+  airportConfigs.forEach(({ icao, name, count }) => {
+    for (let i = 0; i < count; i++) {
+      const catObj = categories[i % categories.length];
+      const notamNum = `A${String(countIndex)}/26`;
+      countIndex++;
+      const id = `notam_${icao.toLowerCase()}_${countIndex}`;
+
+      const raw = `=== RAW NOTAM ===\n${notamNum} NOTAMN\nQ) ${icao}/${catObj.code}/IV/NBO/A/000/999/2834N07706E005\nA) ${icao} B) 2609010000 C) 2610152359\nE) ${catObj.rawText(notamNum, icao)}`;
+      const parsed = `=== PARSED FIELDS ===\nLocation: ${icao}\nStart (UTC): 2609010000\nEnd (UTC): 2610152359\nQualifier: ${catObj.code}`;
+      const simple = `=== SIMPLIFIED EXPLANATION ===\n${catObj.plainText(icao, name)}`;
+
+      items.push({
+        id,
+        notam_id: notamNum,
+        icao,
+        source: "FAA Live NMS Feed",
+        text: `${raw}\n${parsed}\n${simple}`
+      });
+    }
+  });
+
+  return items;
+};
+
+const MOCK_NOTAMS = generate89Notams();
 
 // Helper to generate live NOTAMs dynamically when Live Fetch is clicked
 const generateLiveNotamsForIcao = (icaoCodes) => {
@@ -232,16 +288,21 @@ export const uploadApi = {
 
 export const analyticsApi = {
   getAnalytics: () => safeCall(() => api.get('/analytics'), {
-    totalNotams: 48,
-    activeNotams: 42,
-    expiredNotams: 6,
-    categoryBreakdown: { Runway: 18, Navaid: 12, Obstacle: 10, Airspace: 8 },
+    totalNotams: 89,
+    activeNotams: 82,
+    expiredNotams: 7,
+    categoryBreakdown: { Runway: 30, Navaid: 24, Obstacle: 20, Airspace: 15 },
     topAirports: [
-      { icao: 'VIDP', count: 14 },
-      { icao: 'VABB', count: 12 },
-      { icao: 'VOBL', count: 10 },
-      { icao: 'VOMM', count: 8 },
-      { icao: 'EGLL', count: 4 }
+      { icao: 'VIDP', count: 15 },
+      { icao: 'VABB', count: 15 },
+      { icao: 'VOBL', count: 12 },
+      { icao: 'VOMM', count: 12 },
+      { icao: 'VECC', count: 10 },
+      { icao: 'VOHS', count: 8 },
+      { icao: 'VAAH', count: 5 },
+      { icao: 'VOCI', count: 5 },
+      { icao: 'VAGO', count: 4 },
+      { icao: 'EGLL', count: 3 }
     ]
   }),
 };
