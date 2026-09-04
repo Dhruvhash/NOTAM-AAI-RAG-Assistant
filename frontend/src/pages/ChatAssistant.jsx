@@ -9,7 +9,6 @@ import {
   Bookmark,
   Trash2,
   Sparkles,
-  CheckCircle2,
   Bot,
   User,
   HelpCircle,
@@ -20,16 +19,14 @@ import {
   Check,
   Search,
   Globe,
-  Clock,
   Database,
   ChevronDown,
   ChevronUp,
-  Info,
 } from 'lucide-react';
 
 
 export default function ChatAssistant() {
-  const { startPdfUpload, startFaaFetch, uploading: globalUploading, uploadProgress: globalProgress, uploadStatusMsg: globalMsg, uploadSuccess: globalSuccess, uploadError: globalError } = useUpload();
+  const { startPdfUpload, startFaaFetch, uploading: globalUploading, uploadProgress: globalProgress, uploadStatusMsg: globalMsg, uploadError: globalError } = useUpload();
 
   const [messages, setMessages] = useState([]);
   const [inputQuestion, setInputQuestion] = useState('');
@@ -42,7 +39,6 @@ export default function ChatAssistant() {
   const uploading = globalUploading;
   const uploadProgress = globalProgress;
   const uploadStatusMsg = globalMsg;
-  const uploadSuccess = globalSuccess;
   const uploadError = globalError;
 
   const chatEndRef = useRef(null);

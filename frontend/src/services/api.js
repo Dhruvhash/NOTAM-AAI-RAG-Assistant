@@ -10,12 +10,24 @@ const api = axios.create({
   },
 });
 
+// Request interceptor for attaching JWT Bearer token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Response interceptor for handling 401 unauth
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Unauthenticated, clear local user session state if needed
+      localStorage.removeItem('token');
     }
     return Promise.reject(error);
   }
@@ -48,8 +60,14 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('category', category);
+    const token = localStorage.getItem('token');
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     return axios.post(`${API_BASE_URL}/upload`, formData, {
       withCredentials: true,
+      headers,
       timeout: 300000, // 5 minutes timeout for PDF ingestion
     });
   },

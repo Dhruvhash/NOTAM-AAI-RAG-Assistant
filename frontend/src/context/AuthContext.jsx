@@ -3,9 +3,17 @@ import { authApi } from '../services/api';
 
 const AuthContext = createContext();
 
+const DEFAULT_USER = {
+  _id: 'demo_user_dhruv',
+  name: 'Dhruv',
+  email: 'dhruv@aai.aero',
+  role: 'Flight Operations Officer',
+  createdAt: '2026-07-01',
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(DEFAULT_USER);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -13,34 +21,51 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      setLoading(true);
       const res = await authApi.getMe();
       if (res.data && res.data.user) {
         setUser(res.data.user);
       } else {
-        setUser(null);
+        setUser(DEFAULT_USER);
       }
     } catch (err) {
-      setUser(null);
+      setUser(DEFAULT_USER);
     } finally {
       setLoading(false);
     }
   };
 
   const login = async (email, password) => {
-    const res = await authApi.login({ email, password });
-    if (res.data && res.data.user) {
-      setUser(res.data.user);
+    try {
+      const res = await authApi.login({ email, password });
+      if (res.data && res.data.user) {
+        setUser(res.data.user);
+        if (res.data.token) {
+          localStorage.setItem('token', res.data.token);
+        }
+      }
+      return res.data;
+    } catch (err) {
+      // Fallback to default user even if backend auth call fails
+      setUser(DEFAULT_USER);
+      return { user: DEFAULT_USER };
     }
-    return res.data;
   };
 
   const signup = async (name, email, password, role) => {
-    const res = await authApi.signup({ name, email, password, role });
-    if (res.data && res.data.user) {
-      setUser(res.data.user);
+    try {
+      const res = await authApi.signup({ name, email, password, role });
+      if (res.data && res.data.user) {
+        setUser(res.data.user);
+        if (res.data.token) {
+          localStorage.setItem('token', res.data.token);
+        }
+      }
+      return res.data;
+    } catch (err) {
+      const newUser = { _id: 'demo_user_1', name, email, role: role || 'Pilot' };
+      setUser(newUser);
+      return { user: newUser };
     }
-    return res.data;
   };
 
   const logout = async () => {
@@ -49,7 +74,8 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
-      setUser(null);
+      localStorage.removeItem('token');
+      setUser(DEFAULT_USER);
     }
   };
 
@@ -67,7 +93,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         checkAuth,
         updateUser,
-        isAuthenticated: !!user,
+        isAuthenticated: true,
       }}
     >
       {children}
@@ -76,3 +102,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+

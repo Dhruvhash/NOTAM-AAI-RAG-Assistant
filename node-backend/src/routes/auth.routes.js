@@ -75,14 +75,22 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
-    const user = await User.findOne({ email });
+    const cleanInput = (email || '').trim().toLowerCase();
+    const user = await User.findOne({
+      $or: [
+        { email: cleanInput },
+        { email: `${cleanInput}@aai.aero` },
+        { name: new RegExp(`^${cleanInput}$`, 'i') },
+      ],
+    });
+
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid credentials. User not found.' });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid password. Please check your credentials.' });
     }
 
     sendTokenResponse(user, 200, res);

@@ -5,8 +5,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import { UploadProvider } from './context/UploadContext';
 
 import ProtectedRoute from './components/ProtectedRoute';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import NotamFeed from './pages/NotamFeed';
 import ChatAssistant from './pages/ChatAssistant';
@@ -21,12 +19,13 @@ export default function App() {
         <UploadProvider>
           <Router>
           <Routes>
-            {/* Public Auth Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            {/* Direct Redirect for login/signup */}
+            <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/signup" element={<Navigate to="/dashboard" replace />} />
 
-            {/* Protected Portal Routes */}
+            {/* Portal Routes */}
             <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/feed" element={<NotamFeed />} />
               <Route path="/chat" element={<ChatAssistant />} />
@@ -44,3 +43,4 @@ export default function App() {
     </ThemeProvider>
   );
 }
+

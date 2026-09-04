@@ -8,7 +8,6 @@ import {
   FileText,
   Copy,
   Check,
-  AlertCircle,
 } from 'lucide-react';
 
 export default function Bookmarks() {

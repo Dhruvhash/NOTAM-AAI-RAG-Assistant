@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { uploadApi, faaApi } from '../services/api';
-import { Loader2, CheckCircle, AlertTriangle, X, FileText, Globe } from 'lucide-react';
+import { CheckCircle, AlertTriangle, X, FileText, Globe } from 'lucide-react';
 
 const UploadContext = createContext(null);
 

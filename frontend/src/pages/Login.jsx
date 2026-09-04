@@ -33,9 +33,9 @@ export default function Login() {
     }
   };
 
-  const handleDemoFill = () => {
-    setEmail('pilot.demo@aai.aero');
-    setPassword('Password123');
+  const handleFillUser = (userEmail, userPass) => {
+    setEmail(userEmail);
+    setPassword(userPass);
   };
 
   return (
@@ -66,18 +66,18 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email */}
+          {/* Email / Username */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Email Address
+              Email Address or Username
             </label>
             <div className="relative">
               <Mail className="w-5 h-5 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="officer@aai.aero"
+                placeholder="dhruv / keshav / officer@aai.aero"
                 className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 text-sm transition-all"
                 required
               />
@@ -125,17 +125,6 @@ export default function Login() {
             )}
           </button>
         </form>
-
-        {/* Demo Fill Helper */}
-        <div className="mt-4 text-center">
-          <button
-            onClick={handleDemoFill}
-            type="button"
-            className="text-xs text-sky-400 hover:underline font-medium"
-          >
-            Fill Demo Credentials
-          </button>
-        </div>
 
         {/* Footer Link */}
         <div className="mt-8 pt-6 border-t border-slate-800 text-center">

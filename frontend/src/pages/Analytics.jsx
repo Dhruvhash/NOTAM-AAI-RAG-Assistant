@@ -12,10 +12,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { BarChart3, PieChart as PieIcon, TrendingUp, Layers, CheckCircle } from 'lucide-react';
+import { BarChart3, PieChart as PieIcon, TrendingUp } from 'lucide-react';
 
 export default function Analytics() {
   const [analyticsData, setAnalyticsData] = useState({

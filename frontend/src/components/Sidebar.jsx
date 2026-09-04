@@ -11,7 +11,6 @@ import {
   ChevronRight,
   User,
   LogOut,
-  Plane,
 } from 'lucide-react';
 import AaiLogo from './AaiLogo';
 import { useAuth } from '../context/AuthContext';
@@ -34,7 +33,7 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/dashboard');
   };
 
   return (

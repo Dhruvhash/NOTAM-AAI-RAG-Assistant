@@ -50,18 +50,40 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/notam_
 
 const seedDemoUser = async () => {
   try {
-    const existing = await User.findOne({ email: 'pilot.demo@aai.aero' });
-    if (!existing) {
-      await User.create({
+    const usersToSeed = [
+      {
+        name: 'Dhruv',
+        email: 'dhruv@aai.aero',
+        password: '123456789',
+        role: 'Pilot',
+      },
+      {
+        name: 'Keshav',
+        email: 'keshav@aai.aero',
+        password: '123456789',
+        role: 'Dispatcher',
+      },
+      {
         name: 'Captain Rakesh (Demo)',
         email: 'pilot.demo@aai.aero',
         password: 'Password123',
         role: 'Pilot',
-      });
-      console.log('Demo user created: pilot.demo@aai.aero');
+      },
+    ];
+
+    for (const u of usersToSeed) {
+      const existing = await User.findOne({ email: u.email });
+      if (!existing) {
+        await User.create(u);
+        console.log(`User created: ${u.name} (${u.email})`);
+      } else {
+        // Ensure password matches
+        existing.password = u.password;
+        await existing.save();
+      }
     }
   } catch (err) {
-    console.warn('Demo user seed skipped:', err.message);
+    console.warn('User seeding error/skipped:', err.message);
   }
 };
 
