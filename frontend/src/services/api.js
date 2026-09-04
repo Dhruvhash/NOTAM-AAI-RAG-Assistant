@@ -89,7 +89,45 @@ const generate89Notams = () => {
     }
   ];
 
-  const items = [];
+  const SPECIFIC_VIDP_NOTAMS = [
+    {
+      id: "vidp_ref_0927",
+      notam_id: "A0927/26",
+      icao: "VIDP",
+      source: "FAA Live NMS Feed",
+      text: "=== RAW NOTAM ===\nA0927/26 NOTAMN\nQ) VIDP/QMRXX/IV/NBO/A/000/999/2834N07706E005\nA) VIDP B) 2609021830 C) 2609202330\nE) RWY 09/27 IS UNAVAILABLE FOR OPERATIONS DUE TO MAINTENANCE.\n=== PARSED FIELDS ===\nLocation: VIDP\nStart (UTC): 2609021830\nEnd (UTC): 2609202330\nQualifier: QMRXX\n=== SIMPLIFIED EXPLANATION ===\nRunway 09/27 is unavailable for operations due to scheduled maintenance (Effective 02 Sep - 20 Sep 2026)."
+    },
+    {
+      id: "vidp_ref_11l29r",
+      notam_id: "A1129/26",
+      icao: "VIDP",
+      source: "FAA Live NMS Feed",
+      text: "=== RAW NOTAM ===\nA1129/26 NOTAMN\nQ) VIDP/QMRLC/IV/NBO/A/000/999/2834N07706E005\nA) VIDP B) 2609021830 C) 2609172330\nE) RWY 11L/29R IS UNAVAILABLE FOR OPERATIONS DUE TO MAINTENANCE.\n=== PARSED FIELDS ===\nLocation: VIDP\nStart (UTC): 2609021830\nEnd (UTC): 2609172330\nQualifier: QMRLC\n=== SIMPLIFIED EXPLANATION ===\nRunway 11L/29R is unavailable for operations due to scheduled maintenance (Effective 02 Sep - 17 Sep 2026)."
+    },
+    {
+      id: "vidp_ref_11r29l",
+      notam_id: "A1129L/26",
+      icao: "VIDP",
+      source: "FAA Live NMS Feed",
+      text: "=== RAW NOTAM ===\nA1129L/26 NOTAMN\nQ) VIDP/QICAS/IV/NBO/A/000/999/2834N07706E005\nA) VIDP B) 2608050520 C) PERM\nE) RWY 11R/29L AND SPECIFIED TAXIWAYS ARE UNAVAILABLE, WHILE DESIGNATED TAXIWAYS AND CROSSINGS REMAIN RESTRICTED. VIDP ILS RUNWAY 29L CAT II AND CAT III PROCEDURES ARE WITHDRAWN.\n=== PARSED FIELDS ===\nLocation: VIDP\nStart (UTC): 2608050520\nEnd (UTC): PERM\nQualifier: QICAS\n=== SIMPLIFIED EXPLANATION ===\nRunway 11R/29L and specified taxiways are unavailable. VIDP ILS Runway 29L CAT II and CAT III approach procedures are withdrawn."
+    },
+    {
+      id: "vidp_ref_1028",
+      notam_id: "A1028/26",
+      icao: "VIDP",
+      source: "FAA Live NMS Feed",
+      text: "=== RAW NOTAM ===\nA1028/26 NOTAMN\nQ) VIDP/QICCT/IV/NBO/A/000/999/2834N07706E005\nA) VIDP B) 2511101708 C) PERM\nE) APPROACH CAPABILITY LIMITED - CAT II/III ILS/LOC NOT AVAILABLE; ONLY CAT I APPROACH PROCEDURES AVAILABLE FOR ILS OR LOC RWY 10 AND RWY 28.\n=== PARSED FIELDS ===\nLocation: VIDP\nStart (UTC): 2511101708\nEnd (UTC): PERM\nQualifier: QICCT\n=== SIMPLIFIED EXPLANATION ===\nApproach capability limited on Runway 10 and Runway 28 — CAT II/III ILS/LOC not available; only CAT I approach procedures available."
+    },
+    {
+      id: "vidp_ref_rvr10",
+      notam_id: "A10RVR/26",
+      icao: "VIDP",
+      source: "FAA Live NMS Feed",
+      text: "=== RAW NOTAM ===\nA10RVR/26 NOTAMN\nQ) VIDP/QMRXX/IV/NBO/A/000/999/2834N07706E005\nA) VIDP B) 2609041015 C) 2609051200\nE) RUNWAY 10 TOUCHDOWN ZONE INSTRUMENTAL RVR IS UNAVAILABLE.\n=== PARSED FIELDS ===\nLocation: VIDP\nStart (UTC): 2609041015\nEnd (UTC): 2609051200\nQualifier: QMRXX\n=== SIMPLIFIED EXPLANATION ===\nRunway 10 touchdown zone instrumental Runway Visual Range (RVR) sensor is unserviceable."
+    }
+  ];
+
+  const items = [...SPECIFIC_VIDP_NOTAMS];
   let countIndex = 101;
 
   airportConfigs.forEach(({ icao, name, count }) => {
