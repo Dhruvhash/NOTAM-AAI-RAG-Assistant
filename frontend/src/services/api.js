@@ -212,6 +212,13 @@ const generateLiveNotamsForIcao = (icaoCodes) => {
   return newNotams;
 };
 
+// Reset dynamic NOTAMs in localStorage on initial bundle load for a completely clean start
+try {
+  localStorage.removeItem('aai_dynamic_notams');
+} catch (e) {
+  // ignore
+}
+
 const getStoredDynamicNotams = () => {
   try {
     const data = localStorage.getItem('aai_dynamic_notams');
@@ -223,14 +230,8 @@ const getStoredDynamicNotams = () => {
 
 const saveDynamicNotams = (items) => {
   try {
-    const existing = getStoredDynamicNotams();
-    const updated = [...items, ...existing];
-    // deduplicate by id
-    const uniqueMap = new Map();
-    updated.forEach(n => uniqueMap.set(n.id, n));
-    const finalArr = Array.from(uniqueMap.values());
-    localStorage.setItem('aai_dynamic_notams', JSON.stringify(finalArr));
-    return finalArr;
+    localStorage.setItem('aai_dynamic_notams', JSON.stringify(items));
+    return items;
   } catch {
     return items;
   }
