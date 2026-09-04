@@ -256,12 +256,18 @@ export const authApi = {
 };
 
 export const notamApi = {
-  getHealth: () => safeCall(() => api.get('/notam/health'), { status: 'ok', chunks: 24, sources: ['FAA Live NMS Feed', 'VIDP_Runway_Directives.pdf'] }),
-  getSources: () => safeCall(() => api.get('/notam/sources'), { sources: ['FAA Live NMS Feed', 'VIDP_Runway_Directives.pdf', 'VABB_Obstacle_Advisories.pdf'] }),
-  search: (query, topK = 5) => safeCall(() => api.post('/notam/search', { query, topK }), {
-    hits: [...getStoredDynamicNotams(), ...MOCK_NOTAMS].filter(n => n.text.toLowerCase().includes((query || '').toLowerCase()))
+  getHealth: () => safeCall(() => api.get('/notam/health'), {
+    status: 'ok',
+    chunks: getStoredDynamicNotams().length * 3,
+    sources: getStoredDynamicNotams().length ? ['FAA Live NMS Feed'] : []
   }),
-  getAll: () => safeCall(() => api.get('/notam/all'), { notams: [...getStoredDynamicNotams(), ...MOCK_NOTAMS] }),
+  getSources: () => safeCall(() => api.get('/notam/sources'), {
+    sources: getStoredDynamicNotams().length ? ['FAA Live NMS Feed'] : []
+  }),
+  search: (query, topK = 5) => safeCall(() => api.post('/notam/search', { query, topK }), {
+    hits: getStoredDynamicNotams().filter(n => n.text.toLowerCase().includes((query || '').toLowerCase()))
+  }),
+  getAll: () => safeCall(() => api.get('/notam/all'), { notams: getStoredDynamicNotams() }),
 };
 
 const generateSmartAnswer = (question) => {
@@ -349,24 +355,25 @@ export const uploadApi = {
 };
 
 export const analyticsApi = {
-  getAnalytics: () => safeCall(() => api.get('/analytics'), {
-    totalNotams: 89,
-    activeNotams: 82,
-    expiredNotams: 7,
-    categoryBreakdown: { Runway: 30, Navaid: 24, Obstacle: 20, Airspace: 15 },
-    topAirports: [
-      { icao: 'VIDP', count: 15 },
-      { icao: 'VABB', count: 15 },
-      { icao: 'VOBL', count: 12 },
-      { icao: 'VOMM', count: 12 },
-      { icao: 'VECC', count: 10 },
-      { icao: 'VOHS', count: 8 },
-      { icao: 'VAAH', count: 5 },
-      { icao: 'VOCI', count: 5 },
-      { icao: 'VAGO', count: 4 },
-      { icao: 'EGLL', count: 3 }
-    ]
-  }),
+  getAnalytics: () => {
+    const dynamicItems = getStoredDynamicNotams();
+    const count = dynamicItems.length;
+    return safeCall(() => api.get('/analytics'), {
+      totalNotams: count,
+      activeNotams: count,
+      expiredNotams: 0,
+      categoryBreakdown: {
+        Runway: Math.ceil(count * 0.4),
+        Navaid: Math.ceil(count * 0.3),
+        Obstacle: Math.ceil(count * 0.2),
+        Airspace: Math.floor(count * 0.1)
+      },
+      topAirports: Array.from(new Set(dynamicItems.map(i => i.icao))).map(icao => ({
+        icao,
+        count: dynamicItems.filter(i => i.icao === icao).length
+      }))
+    });
+  },
 };
 
 export const bookmarkApi = {
