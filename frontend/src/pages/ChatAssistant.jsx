@@ -313,6 +313,9 @@ export default function ChatAssistant() {
 
     try {
       const res = await chatApi.ask(q);
+      const chatData = res.data?.chat;
+      const ragResp = res.data?.response;
+
       const answerText = chatData?.answer || ragResp?.answer || res.data?.answer || 'No answer found in ingested NOTAM documents.';
       const sources = chatData?.sources || ragResp?.sources || res.data?.sources || [];
 
@@ -321,7 +324,7 @@ export default function ChatAssistant() {
         text: answerText,
         sources,
         timestamp: new Date(),
-        id: chatData?._id,
+        id: chatData?._id || 'msg_' + Date.now(),
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
